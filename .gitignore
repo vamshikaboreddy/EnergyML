@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
+.senv/
+
+# VS Code
+.vscode/
+
+# Build / dist
+.dist/
+build/
+
+# ML models (heavy files)
+results/models/
+*.keras
+*.h5
+*.tflite
+
+# Data (optional if large)
+results/data/
+
+# OS
+.DS_Store
+Thumbs.db

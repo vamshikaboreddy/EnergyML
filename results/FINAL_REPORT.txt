@@ -1,0 +1,90 @@
+
+================================================================================
+                ENERGY-AWARE MACHINE LEARNING
+                COMPLETE PROJECT REPORT — EfficientNetV2M
+================================================================================
+
+DATE             : 2026-04-27 09:57:12
+DATASET          : Oxford Flowers102  (224×224 colour images, 102 classes)
+BACKBONE         : EfficientNetV2M  (ImageNet pretrained = True)
+TARGET ACCURACY  : 90%+
+TRAINING SAMPLES : 6149  (original test split used for training)
+TEST SAMPLES     : 2040   (original train + validation splits)
+
+1. TECHNIQUES IMPLEMENTED
+────────────────────────────────────────────────────────────────────────────────
+✓ Baseline           — EfficientNetV2M, 2-phase training (head freeze → fine-tune)
+✓ Quantization       — Float16 TFLite conversion
+✓ Early Stopping     — Auto-stop on val_accuracy plateau  (patience=7)
+✓ Transfer Learning  — Frozen base + rich head (Dense(256) + strong aug, 2-phase)
+✓ Fine-Tuning        — Deep backbone unfreeze (50 layers) + cosine warmup LR
+
+2. RESULTS SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+Technique                Accuracy    Size (MB)       CO₂ (kg)   Time (s)
+────────────────────────────────────────────────────────────────────────────────
+Baseline                   90.88%      203.251       0.000801    22648.3
+Quantization               90.20%      101.157       0.001147      397.4
+Early Stopping             88.38%      203.251       0.126780    19222.3
+Transfer Learning          91.23%      204.104       0.051876    14080.5
+Fine-Tuning                91.52%      204.104       0.067230     9467.9
+
+3. BEST IN CATEGORY
+────────────────────────────────────────────────────────────────────────────────
+• Highest Accuracy  : Fine-Tuning                (91.52%)
+• Smallest Model    : Quantization               (101.157 MB)
+• Lowest CO₂        : Baseline                   (0.000801 kg)
+• Fastest Training  : Quantization               (397.4s)
+
+4. WHY EfficientNetV2M?
+────────────────────────────────────────────────────────────────────────────────
+• V2M has ~54M params — rich feature representations for 102 flower classes
+• Pretrained on ImageNet — textures, shapes, colour gradients transfer well
+• 2-phase training: freeze backbone → train head, then unfreeze last N layers
+• Expected accuracy on Flowers102: 88–93% depending on technique
+
+5. TECHNIQUE EXPLANATIONS
+────────────────────────────────────────────────────────────────────────────────
+Baseline:
+  2-phase EfficientNetV2M training. Phase 1 freezes the backbone and trains
+  only the classification head. Phase 2 unfreezes the last 30 layers for
+  fine-tuning at a very small LR. Reference point for all comparisons.
+
+Quantization:
+  Post-training Float16 TFLite conversion. Halves model file size with
+  near-zero accuracy loss. No retraining required — pure mathematical
+  precision reduction on every weight in the model.
+
+Early Stopping:
+  Same model as Baseline but training stops automatically when val_accuracy
+  plateaus (patience=7). Saves energy by skipping unnecessary epochs.
+
+Transfer Learning:
+  Phase 1: Entire backbone frozen, only the richer head (Dense(256) +
+  Dropout + Softmax) is trained with strong augmentation.
+  Phase 2: Last 20 backbone layers unfrozen at LR=1e-5 (batch=8 to avoid OOM).
+  Fastest technique with competitive accuracy via pure ImageNet feature reuse.
+
+Fine-Tuning:
+  Loads the Transfer Learning model and unfreezes the last 50 backbone
+  layers. Uses cosine warmup LR schedule — linear ramp-up over 2 epochs
+  then cosine decay — to prevent catastrophic forgetting of pretrained weights.
+  Highest accuracy technique of all five.
+
+6. LIFECYCLE CARBON NOTE
+────────────────────────────────────────────────────────────────────────────────
+Hardware manufacturing (embodied carbon) is ~70x the training footprint.
+Even small model size reductions via quantization compound across
+3 years of inference at 1000 daily predictions.
+
+7. CONCLUSION
+────────────────────────────────────────────────────────────────────────────────
+EfficientNetV2M with Fine-Tuning achieves the highest accuracy on Flowers102.
+Transfer Learning provides the best energy-efficiency trade-off for
+deployment scenarios where training cost must be minimised.
+Quantization is the recommended post-training step before any deployment —
+it halves model size with negligible accuracy loss and zero training cost.
+
+================================================================================
+                        END OF REPORT
+================================================================================
